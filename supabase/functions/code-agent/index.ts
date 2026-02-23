@@ -116,20 +116,34 @@ async function callAi(config: ReturnType<typeof getAiConfig>, model: string, mes
   const body: any = { model, messages, temperature };
   if (maxTokens) body.max_tokens = maxTokens;
 
-  const res = await fetch(config.url, {
-    method: "POST",
-    headers: config.headers,
-    body: JSON.stringify(body),
-  });
+  const maxRetries = 3;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const res = await fetch(config.url, {
+      method: "POST",
+      headers: config.headers,
+      body: JSON.stringify(body),
+    });
 
-  if (!res.ok) {
-    if (res.status === 429) throw { status: 429, message: "Muitas requisições, espera um pouquinho! 😅" };
-    if (res.status === 401 || res.status === 403) throw { status: 401, message: "Chave API inválida. Verifique nas configurações do perfil." };
+    if (res.ok) return res.json();
+
+    if (res.status === 429) {
+      if (attempt < maxRetries - 1) {
+        const wait = Math.pow(2, attempt + 1) * 1000; // 2s, 4s
+        console.log(`Rate limited (429), retrying in ${wait}ms (attempt ${attempt + 1}/${maxRetries})`);
+        await new Promise(r => setTimeout(r, wait));
+        continue;
+      }
+      throw { status: 429, message: "API de IA com muitas requisições. Tente novamente em alguns segundos." };
+    }
+    if (res.status === 401 || res.status === 403) {
+      await res.text();
+      throw { status: 401, message: "Chave API inválida. Verifique nas configurações do perfil." };
+    }
     const t = await res.text();
     console.error("AI error:", res.status, t);
     throw { status: 500, message: "Erro na IA" };
   }
-  return res.json();
+  throw { status: 500, message: "Erro inesperado na IA" };
 }
 
 serve(async (req) => {
