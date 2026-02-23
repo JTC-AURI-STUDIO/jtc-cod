@@ -1,0 +1,7 @@
+project_id = "vxzsxsomukxlkvwtdkyi"
+
+[functions.code-agent]
+verify_jwt = false
+
+[functions.undo-commit]
+verify_jwt = false
