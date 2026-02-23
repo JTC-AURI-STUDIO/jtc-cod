@@ -93,6 +93,39 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          ai_api_key: string | null
+          ai_provider: string | null
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_api_key?: string | null
+          ai_provider?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_api_key?: string | null
+          ai_provider?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       repositories: {
         Row: {
           created_at: string
