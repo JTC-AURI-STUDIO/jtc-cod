@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import ConnectRepo from "@/components/ConnectRepo";
 import ChatInterface from "@/components/ChatInterface";
-import ProfileDialog from "@/components/ProfileDialog";
 import { Terminal, LogOut, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -13,7 +12,6 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [activeRepo, setActiveRepo] = useState<any>(null);
   const [loadingRepo, setLoadingRepo] = useState(true);
-  const [showProfile, setShowProfile] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -72,7 +70,7 @@ const Dashboard = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowProfile(true)}
+            onClick={() => navigate("/profile")}
             className="text-muted-foreground hover:text-primary"
           >
             <UserCircle className="h-4 w-4" />
@@ -90,14 +88,6 @@ const Dashboard = () => {
           <ConnectRepo userId={user!.id} onConnected={fetchActiveRepo} />
         )}
       </main>
-
-      {user && (
-        <ProfileDialog
-          open={showProfile}
-          onOpenChange={setShowProfile}
-          userId={user.id}
-        />
-      )}
     </div>
   );
 };
