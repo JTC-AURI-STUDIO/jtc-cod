@@ -128,12 +128,14 @@ async function callAi(config: ReturnType<typeof getAiConfig>, model: string, mes
 
     if (res.status === 429) {
       if (attempt < maxRetries - 1) {
-        const wait = Math.pow(2, attempt + 1) * 1000; // 2s, 4s
+        const wait = Math.pow(2, attempt + 1) * 1000;
         console.log(`Rate limited (429), retrying in ${wait}ms (attempt ${attempt + 1}/${maxRetries})`);
         await new Promise(r => setTimeout(r, wait));
         continue;
       }
-      throw { status: 429, message: "API de IA com muitas requisições. Tente novamente em alguns segundos." };
+      // Fallback to Lovable AI Gateway
+      console.log("User API key rate limited after retries, falling back to Lovable AI Gateway");
+      return callLovableAi(messages, temperature, maxTokens);
     }
     if (res.status === 401 || res.status === 403) {
       await res.text();
@@ -144,6 +146,36 @@ async function callAi(config: ReturnType<typeof getAiConfig>, model: string, mes
     throw { status: 500, message: "Erro na IA" };
   }
   throw { status: 500, message: "Erro inesperado na IA" };
+}
+
+async function callLovableAi(messages: any[], temperature = 0.1, maxTokens?: number) {
+  const apiKey = Deno.env.get("LOVABLE_API_KEY");
+  if (!apiKey) throw { status: 500, message: "Fallback AI não configurado" };
+
+  const body: any = {
+    model: "google/gemini-3-flash-preview",
+    messages,
+    temperature,
+  };
+  if (maxTokens) body.max_tokens = maxTokens;
+
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const t = await res.text();
+    console.error("Lovable AI fallback error:", res.status, t);
+    if (res.status === 429) throw { status: 429, message: "Limite de requisições atingido. Tente novamente em alguns segundos." };
+    if (res.status === 402) throw { status: 402, message: "Créditos de IA esgotados." };
+    throw { status: 500, message: "Erro no fallback de IA" };
+  }
+  return res.json();
 }
 
 serve(async (req) => {
