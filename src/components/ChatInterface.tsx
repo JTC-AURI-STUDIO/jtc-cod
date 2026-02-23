@@ -23,6 +23,7 @@ interface ChatInterfaceProps {
     github_token: string;
   };
   onDisconnect: () => void;
+  userId: string;
 }
 
 interface Message {
@@ -33,7 +34,7 @@ interface Message {
   created_at?: string;
 }
 
-const ChatInterface = ({ repo, onDisconnect }: ChatInterfaceProps) => {
+const ChatInterface = ({ repo, onDisconnect, userId }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -152,6 +153,7 @@ const ChatInterface = ({ repo, onDisconnect }: ChatInterfaceProps) => {
           repo_name: repo.repo_name,
           github_token: repo.github_token,
           history: messages.slice(-10).map((m) => ({ role: m.role, content: m.content })),
+          user_id: userId,
         }),
       });
 

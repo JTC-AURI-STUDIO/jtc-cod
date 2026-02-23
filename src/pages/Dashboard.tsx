@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import ConnectRepo from "@/components/ConnectRepo";
 import ChatInterface from "@/components/ChatInterface";
-import { Terminal, LogOut } from "lucide-react";
+import ProfileDialog from "@/components/ProfileDialog";
+import { Terminal, LogOut, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Dashboard = () => {
@@ -12,6 +13,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [activeRepo, setActiveRepo] = useState<any>(null);
   const [loadingRepo, setLoadingRepo] = useState(true);
+  const [showProfile, setShowProfile] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -58,7 +60,6 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
       <header className="border-b border-border px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Terminal className="h-6 w-6 text-primary" />
@@ -68,20 +69,35 @@ const Dashboard = () => {
           <span className="text-muted-foreground text-xs font-mono hidden sm:inline">
             {user?.email}
           </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowProfile(true)}
+            className="text-muted-foreground hover:text-primary"
+          >
+            <UserCircle className="h-4 w-4" />
+          </Button>
           <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground hover:text-destructive">
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
       </header>
 
-      {/* Main */}
       <main className="flex-1 flex overflow-hidden">
         {activeRepo ? (
-          <ChatInterface repo={activeRepo} onDisconnect={handleDisconnect} />
+          <ChatInterface repo={activeRepo} onDisconnect={handleDisconnect} userId={user!.id} />
         ) : (
           <ConnectRepo userId={user!.id} onConnected={fetchActiveRepo} />
         )}
       </main>
+
+      {user && (
+        <ProfileDialog
+          open={showProfile}
+          onOpenChange={setShowProfile}
+          userId={user.id}
+        />
+      )}
     </div>
   );
 };
